@@ -1,8 +1,14 @@
 // -*- java -*-
 
 plugins {
-    id "java"
+    id "java-library"
     id "maven-publish"
+}
+
+def publishProps = new Properties()
+File publishPropertiesFile = project.file("../publish.properties")
+if(publishPropertiesFile.exists()) {
+    publishPropertiesFile.withInputStream { publishProps.load(it) }
 }
 
 repositories {
@@ -18,7 +24,7 @@ dependencies {
 }
 
 group = "it.sauronsoftware"
-version = "1.0.4"
+version = "1.0.5"
 description = "it.sauronsoftware.junique"
 
 java {
@@ -30,10 +36,63 @@ java {
     withJavadocJar()
 }
 
+
+def pomConfig = {
+    licenses {
+        license {
+            name "GPL 2.1"
+            url "https://opensource.org/licenses/lgpl-2.1.php"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            id "jspchewe"
+            name "Jon Schewe"
+            email "jpschewe@mtu.net"
+        }
+    }
+
+    scm {
+        url "https://github.com/jpschewe/it.sauronsoftware.junique"
+    }
+}
+  
 publishing {
     publications {
-        maven(MavenPublication) {
-            from(components.java)
+        mavenPublication(MavenPublication) {
+            from components.java
+            pom.withXml {
+                def root = asNode()
+                root.appendNode("description", """The JUnique library can be used to prevent a user to run at the same time more instances of the same Java application.
+        JUnique implements locks and communication channels shared between all the JVM instances launched by the same user. 
+        See the documentation for more details.
+        for of http://www.sauronsoftware.it/projects/junique/""")
+                root.appendNode("name", "it.sauronsoftware.junique")
+                root.appendNode("url", "https://github.com/jpschewe/it.sauronsoftware.junique")
+                root.children().last() + pomConfig
+            }
+        }
+        
+        mavenJava(MavenPublication) {
+            from components.java
+        }        
+    }
+ 
+    repositories {
+        mavenLocal()
+        maven {
+          def releasesRepoUrl = "https://repo.mtu.net/releases/"
+          def snapshotsRepoUrl = "https://repo.mtu.net/snapshots/"
+          url = version.contains("beta") ? snapshotsRepoUrl : releasesRepoUrl
+          
+          credentials {
+            username publishProps.getProperty("repo.user")
+            password publishProps.getProperty("repo.key")
+          }
+          authentication {
+            basic(BasicAuthentication)
+          }          
         }
     }
 }
