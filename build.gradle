@@ -1,0 +1,39 @@
+// -*- java -*-
+
+plugins {
+    id "java"
+    id "maven-publish"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+      url "https://repo.mtu.net/releases"
+    }
+}
+
+dependencies {
+  testImplementation(group: "junit", name: "junit", version: "3.8.1")
+}
+
+group = "it.sauronsoftware"
+version = "1.0.4"
+description = "it.sauronsoftware.junique"
+
+java {
+    // set version of Java that the source confirms to. 
+    // The bytecode will be for this version of Java as well, unless targetCompatibility is specified.
+    sourceCompatibility = JavaVersion.VERSION_11
+    
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
